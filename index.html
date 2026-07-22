@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seu Presente de Aniversário</title>
+  <style>
+    :root {
+      --gold: #ffd54a;
+      --pink: #ff4f87;
+      --purple: #6b2bd9;
+      --dark: #160d2d;
+      --light: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--light);
+      overflow-x: hidden;
+      background:
+        linear-gradient(rgba(14, 6, 35, .68), rgba(14, 6, 35, .86)),
+        url("imagem-fundo.jpg") center/cover fixed;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .screen {
+      display: none;
+      min-height: 100vh;
+      width: 100%;
+      padding: 24px 16px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .card {
+      width: min(960px, 100%);
+      padding: 28px 18px;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 28px;
+      background: rgba(18, 8, 48, .72);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.4);
+    }
+
+    h1 {
+      font-size: clamp(2rem, 6vw, 4.5rem);
+      margin-bottom: 12px;
+      text-shadow: 0 4px 18px rgba(0,0,0,.45);
+    }
+
+    h2 {
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      margin-bottom: 12px;
+    }
+
+    p {
+      font-size: clamp(1rem, 2.7vw, 1.25rem);
+      line-height: 1.5;
+    }
+
+    .gift {
+      width: min(280px, 70vw);
+      margin: 22px auto;
+      cursor: pointer;
+      animation: float 2.1s ease-in-out infinite;
+      user-select: none;
+    }
+
+    .gift-box {
+      position: relative;
+      width: 220px;
+      height: 165px;
+      margin: 52px auto 0;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #ff477e, #d92367);
+      box-shadow: 0 18px 35px rgba(0,0,0,.35);
+    }
+
+    .gift-lid {
+      position: absolute;
+      width: 250px;
+      height: 52px;
+      left: -15px;
+      top: -32px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ff709d, #e02b6f);
+      box-shadow: 0 10px 20px rgba(0,0,0,.25);
+    }
+
+    .gift-ribbon-v {
+      position: absolute;
+      width: 42px;
+      height: 100%;
+      left: 89px;
+      top: 0;
+      background: var(--gold);
+    }
+
+    .gift-ribbon-h {
+      position: absolute;
+      width: 100%;
+      height: 34px;
+      top: 62px;
+      left: 0;
+      background: var(--gold);
+    }
+
+    .gift-bow {
+      position: absolute;
+      left: 50%;
+      top: -72px;
+      transform: translateX(-50%);
+      font-size: 78px;
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,.25));
+    }
+
+    .primary-btn {
+      margin-top: 18px;
+      padding: 14px 26px;
+      border: none;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #241044;
+      background: linear-gradient(135deg, #ffe47a, #ffbf24);
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(255, 196, 36, .35);
+      transition: transform .2s ease;
+    }
+
+    .primary-btn:hover {
+      transform: scale(1.04);
+    }
+
+    .primary-btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .wheel-area {
+      position: relative;
+      width: min(700px, 98vw);
+      margin: 26px auto 12px;
+    }
+
+    .pointer {
+      position: absolute;
+      z-index: 5;
+      left: 50%;
+      top: -14px;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 42px solid var(--gold);
+      filter: drop-shadow(0 4px 4px rgba(0,0,0,.5));
+    }
+
+    .wheel-shell {
+      width: min(650px, 96vw);
+      aspect-ratio: 1;
+      margin: auto;
+      padding: 12px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #fff2a8, #d99800);
+      box-shadow: 0 0 0 8px rgba(255,255,255,.18), 0 18px 55px rgba(0,0,0,.45);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .status {
+      min-height: 40px;
+      margin-top: 14px;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .chance {
+      margin-top: 8px;
+      color: #ffe17a;
+      font-weight: 700;
+    }
+
+    .video-wrap {
+      width: min(900px, 96vw);
+    }
+
+    video {
+      width: 100%;
+      max-height: 78vh;
+      border-radius: 18px;
+      background: #000;
+      box-shadow: 0 18px 55px rgba(0,0,0,.5);
+    }
+
+    .mystery-box {
+      font-size: clamp(7rem, 25vw, 13rem);
+      cursor: pointer;
+      display: inline-block;
+      margin: 18px 0;
+      animation: pulse 1.2s ease-in-out infinite;
+      filter: drop-shadow(0 15px 18px rgba(0,0,0,.35));
+    }
+
+    .small-note {
+      margin-top: 12px;
+      opacity: .78;
+      font-size: .92rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-13px); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1) rotate(-2deg); }
+      50% { transform: scale(1.08) rotate(2deg); }
+    }
+
+    @media (max-width: 520px) {
+      .card { padding: 22px 12px; }
+      .wheel-shell { padding: 8px; }
+      .pointer {
+        border-left-width: 15px;
+        border-right-width: 15px;
+        border-top-width: 32px;
+      }
+    }
+
+    .wheel-area.suspense {
+      animation: wheelGlow .55s ease-in-out infinite alternate;
+    }
+
+    .mystery-screen-glow {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mystery-screen-glow::before,
+    .mystery-screen-glow::after {
+      content: "✨";
+      position: absolute;
+      font-size: 2.2rem;
+      animation: sparkle 1.4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .mystery-screen-glow::before {
+      left: 12%;
+      top: 24%;
+    }
+
+    .mystery-screen-glow::after {
+      right: 12%;
+      top: 32%;
+      animation-delay: .45s;
+    }
+
+    .mystery-box.reveal-ready {
+      animation: mysteryShake .55s ease-in-out infinite, pulse 1.2s ease-in-out infinite;
+    }
+
+    .near-prize {
+      color: #ffe47a;
+      animation: textPulse .45s ease-in-out infinite alternate;
+    }
+
+    @keyframes wheelGlow {
+      from {
+        filter: drop-shadow(0 0 8px rgba(255, 213, 74, .25));
+      }
+      to {
+        filter: drop-shadow(0 0 24px rgba(255, 213, 74, .95));
+      }
+    }
+
+    @keyframes mysteryShake {
+      0%, 100% { transform: rotate(-3deg) scale(1.02); }
+      50% { transform: rotate(3deg) scale(1.10); }
+    }
+
+    @keyframes sparkle {
+      0%, 100% { opacity: .25; transform: translateY(0) scale(.75); }
+      50% { opacity: 1; transform: translateY(-18px) scale(1.25); }
+    }
+
+    @keyframes textPulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.05); }
+    }
+
+
+    #videoOneScreen,
+    #finalVideoScreen {
+      padding: 0;
+      background: #000;
+    }
+
+    #videoOneScreen .card,
+    #finalVideoScreen .card {
+      width: 100vw;
+      height: 100vh;
+      max-width: none;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: #000;
+      box-shadow: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #videoOneScreen h2,
+    #videoOneScreen p,
+    #videoOneScreen .small-note,
+    #finalVideoScreen h2,
+    #finalVideoScreen p {
+      display: none;
+    }
+
+    #videoOne,
+    #finalVideo {
+      width: 100vw;
+      height: 100vh;
+      max-height: none;
+      border-radius: 0;
+      object-fit: contain;
+      background: #000;
+      box-shadow: none;
+    }
+
+  </style>
+</head>
+<body>
+
+  <section id="intro" class="screen active">
+    <div class="card">
+      <h1>🎉 Você ganhou um presente!</h1>
+      <p>Clique na caixa para abrir seu presente de aniversário.</p>
+
+      <div class="gift" id="openGift" aria-label="Abrir presente">
+        <div class="gift-box">
+          <div class="gift-lid"></div>
+          <div class="gift-ribbon-v"></div>
+          <div class="gift-ribbon-h"></div>
+          <div class="gift-bow">🎀</div>
+        </div>
+      </div>
+
+      <button class="primary-btn" id="openGiftButton">Clique para abrir seu presente</button>
+    </div>
+  </section>
+
+  <section id="roulette" class="screen">
+    <div class="card">
+      <h2>🎡 Roleta de Aniversário</h2>
+      <p>Você tem duas chances para ganhar seu presente!</p>
+
+      <div class="wheel-area">
+        <div class="pointer"></div>
+        <div class="wheel-shell">
+          <canvas id="wheel" width="900" height="900"></canvas>
+        </div>
+      </div>
+
+      <div class="chance" id="chanceText">Chances restantes: 2</div>
+      <div class="status" id="statusText">Clique em GIRAR ROLETA</div>
+      <button class="primary-btn" id="spinButton">🎯 Girar roleta</button>
+    </div>
+  </section>
+
+  <section id="videoOneScreen" class="screen">
+    <div class="card video-wrap">
+      <h2>😱 Quase!</h2>
+      <p>Assista ao vídeo para liberar sua última chance.</p>
+      <br>
+      <video id="videoOne" playsinline webkit-playsinline preload="auto">
+        <source src="video-primeira-chance.mp4" type="video/mp4">
+        Seu navegador não suporta vídeo.
+      </video>
+      <p class="small-note">Ao finalizar o vídeo, a última tentativa será liberada automaticamente.</p>
+      <button class="primary-btn hidden" id="continueButton">Ir para a última chance</button>
+    </div>
+  </section>
+
+  <section id="mysteryScreen" class="screen">
+    <div class="card mystery-screen-glow">
+      <h2>🎁 Você ganhou a Caixa Misteriosa!</h2>
+      <p>Clique na caixa para descobrir o presente final.</p>
+      <div class="mystery-box reveal-ready" id="mysteryBox">🎁</div>
+      <br>
+      <button class="primary-btn" id="openMysteryButton">Abrir Caixa Misteriosa</button>
+    </div>
+  </section>
+
+  <section id="finalVideoScreen" class="screen">
+    <div class="card video-wrap">
+      <h2>✨ Sua surpresa final</h2>
+      <video id="finalVideo" playsinline webkit-playsinline preload="auto">
+        <source src="video-final.mp4" type="video/mp4">
+        Seu navegador não suporta vídeo.
+      </video>
+      <p class="small-note">Feliz aniversário! 🎂🎉</p>
+    </div>
+  </section>
+
+<script>
+  const prizes = [
+    { label: "💻 MacBook Pro", icon: "💻", lines: ["MacBook", "Pro"], color: "#5d3fd3" },
+    { label: "📲 iPad Pro", icon: "📲", lines: ["iPad", "Pro"], color: "#ff5c8a" },
+    { label: "💰 R$ 1 Milhão", icon: "💰", lines: ["R$ 1", "Milhão"], color: "#04a777" },
+    { label: "📱 iPhone 17 Pro Max", icon: "📱", lines: ["iPhone 17", "Pro Max"], color: "#1261a0" },
+    { label: "🎮 PlayStation 5 Pro", icon: "🎮", lines: ["PlayStation", "5 Pro"], color: "#e67e22" },
+    { label: "🖥️ PC Gamer", icon: "🖥️", lines: ["PC", "Gamer"], color: "#a23bec" },
+    { label: "✈️ Viagem Internacional", icon: "✈️", lines: ["Viagem", "Internacional"], color: "#16a6b6" },
+    { label: "🚗 Carro 0 km", icon: "🚗", lines: ["Carro", "0 km"], color: "#d64545" },
+    { label: "🎁 Caixa Misteriosa", icon: "🎁", lines: ["Caixa", "Misteriosa"], color: "#f4b400" },
+    { label: "😢 Não foi dessa vez", icon: "❌", lines: ["Não foi", "dessa vez"], color: "#4c566a" }
+  ];
+
+  const canvas = document.getElementById("wheel");
+  const ctx = canvas.getContext("2d");
+  const spinButton = document.getElementById("spinButton");
+  const statusText = document.getElementById("statusText");
+  const chanceText = document.getElementById("chanceText");
+
+  let currentRotation = 0;
+  let spinCount = 0;
+  let spinning = false;
+
+  function showScreen(id) {
+    document.querySelectorAll(".screen").forEach(screen => screen.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function drawWheel(rotation = 0) {
+    const size = canvas.width;
+    const center = size / 2;
+    const radius = center - 12;
+    const slice = (Math.PI * 2) / prizes.length;
+
+    ctx.clearRect(0, 0, size, size);
+    ctx.save();
+    ctx.translate(center, center);
+    ctx.rotate(rotation);
+
+    prizes.forEach((prize, index) => {
+      const start = index * slice - Math.PI / 2;
+      const end = start + slice;
+      const middle = start + slice / 2;
+
+      // Fatia
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, radius, start, end);
+      ctx.closePath();
+      ctx.fillStyle = prize.color;
+      ctx.fill();
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = "rgba(255,255,255,.92)";
+      ctx.stroke();
+
+      // Posição central do conteúdo da fatia
+      const contentRadius = radius * 0.68;
+      const x = Math.cos(middle) * contentRadius;
+      const y = Math.sin(middle) * contentRadius;
+
+      ctx.save();
+      ctx.translate(x, y);
+
+      // Mantém todo o conteúdo reto para leitura
+      ctx.rotate(-rotation);
+
+      // Ícone
+      ctx.font = "54px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.shadowColor = "rgba(0,0,0,.7)";
+      ctx.shadowBlur = 8;
+      ctx.fillText(prize.icon, 0, -46);
+
+      // Texto grande, em duas linhas
+      const longest = Math.max(...prize.lines.map(line => line.length));
+      let fontSize = 36;
+      if (longest >= 12) fontSize = 30;
+      if (longest >= 15) fontSize = 26;
+
+      ctx.font = `900 ${fontSize}px Arial`;
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = "rgba(0,0,0,.78)";
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.shadowColor = "rgba(0,0,0,.75)";
+      ctx.shadowBlur = 7;
+
+      const lineHeight = fontSize + 6;
+      const startY = prize.lines.length === 2 ? 5 : 0;
+
+      prize.lines.forEach((line, lineIndex) => {
+        const lineY = startY + lineIndex * lineHeight;
+        ctx.strokeText(line, 0, lineY);
+        ctx.fillText(line, 0, lineY);
+      });
+
+      ctx.restore();
+    });
+
+    ctx.restore();
+
+    // Centro menor para liberar mais espaço
+    ctx.beginPath();
+    ctx.arc(center, center, 68, 0, Math.PI * 2);
+    ctx.fillStyle = "#25104a";
+    ctx.fill();
+    ctx.lineWidth = 9;
+    ctx.strokeStyle = "#ffd54a";
+    ctx.stroke();
+
+    ctx.font = "bold 48px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#fff";
+    ctx.fillText("🎁", center, center + 3);
+  } else {
+        line = test;
+      }
+    });
+    lines.push(line);
+
+    const startY = y - ((lines.length - 1) * lineHeight) / 2;
+    lines.forEach((item, index) => context.fillText(item, x, startY + index * lineHeight));
+  }
+
+  function normalizeAngle(angle) {
+    const full = Math.PI * 2;
+    return ((angle % full) + full) % full;
+  }
+
+  function targetRotationForIndex(index, extraTurns) {
+    const slice = (Math.PI * 2) / prizes.length;
+    const centerAngle = index * slice + slice / 2;
+    const desired = -centerAngle;
+    const normalizedCurrent = normalizeAngle(currentRotation);
+    const normalizedTarget = normalizeAngle(desired);
+    let delta = normalizedTarget - normalizedCurrent;
+
+    if (delta < 0) delta += Math.PI * 2;
+    return currentRotation + delta + extraTurns * Math.PI * 2;
+  }
+
+  function continuousSpin(finalIndex, duration, extraTurns, messages) {
+    if (spinning) return;
+
+    spinning = true;
+    spinButton.disabled = true;
+
+    const startRotation = currentRotation;
+    const endRotation = targetRotationForIndex(finalIndex, extraTurns);
+    const startTime = performance.now();
+    const wheelArea = document.querySelector(".wheel-area");
+    let lastMessageIndex = -1;
+
+    wheelArea.classList.add("suspense");
+    statusText.classList.add("near-prize");
+
+    function animate(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Giro rápido no início e desaceleração contínua até o resultado.
+      const eased = 1 - Math.pow(1 - progress, 4);
+      currentRotation = startRotation + (endRotation - startRotation) * eased;
+      drawWheel(currentRotation);
+
+      // Apenas muda a mensagem durante o giro, sem parar a roleta.
+      const messageIndex = Math.min(
+        Math.floor(progress * messages.length),
+        messages.length - 1
+      );
+
+      if (messageIndex !== lastMessageIndex) {
+        statusText.textContent = messages[messageIndex];
+        lastMessageIndex = messageIndex;
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        currentRotation = endRotation;
+        drawWheel(currentRotation);
+
+        spinning = false;
+        statusText.classList.remove("near-prize");
+        wheelArea.classList.remove("suspense");
+        handleSpinResult(finalIndex);
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  function handleSpinResult(index) {
+    if (navigator.vibrate) navigator.vibrate([120, 80, 180]);
+    const result = prizes[index];
+    statusText.textContent = `Resultado: ${result.label}`;
+
+    if (spinCount === 1) {
+      chanceText.textContent = "Chances restantes: 1";
+      showScreen("videoOneScreen");
+      const video = document.getElementById("videoOne");
+      playVideoFullscreen(video);
+    } else {
+      chanceText.textContent = "Chances restantes: 0";
+      setTimeout(() => showScreen("mysteryScreen"), 1200);
+    }
+  }
+
+  function startSpin() {
+    if (spinning || spinCount >= 2) return;
+    spinCount++;
+
+    if (spinCount === 1) {
+      continuousSpin(
+        9,
+        8200,
+        10,
+        [
+          "🎡 A roleta está girando...",
+          "💻 Passando pelo MacBook...",
+          "📱 Será o iPhone 17 Pro Max?",
+          "💰 Quase no R$ 1 milhão...",
+          "😱 Está desacelerando..."
+        ]
+      );
+    } else {
+      continuousSpin(
+        8,
+        7600,
+        9,
+        [
+          "🎡 Última chance...",
+          "🚗 Passando pelo Carro 0 km...",
+          "🎮 Será o PlayStation 5 Pro?",
+          "💰 Quase no R$ 1 milhão...",
+          "🎁 Está chegando ao resultado..."
+        ]
+      );
+    }
+  }
+
+
+  async function playVideoFullscreen(video) {
+    try {
+      video.currentTime = 0;
+      video.muted = false;
+      video.volume = 1;
+
+      // Tenta abrir em tela cheia real.
+      if (video.requestFullscreen) {
+        try { await video.requestFullscreen(); } catch (e) {}
+      } else if (video.webkitRequestFullscreen) {
+        try { video.webkitRequestFullscreen(); } catch (e) {}
+      } else if (video.webkitEnterFullscreen) {
+        try { video.webkitEnterFullscreen(); } catch (e) {}
+      }
+
+      // Tenta reproduzir com som.
+      try {
+        await video.play();
+      } catch (e) {
+        // Caso o navegador bloqueie áudio automático, inicia sem som.
+        video.muted = true;
+        await video.play();
+      }
+    } catch (e) {
+      console.warn("O navegador bloqueou a reprodução automática:", e);
+    }
+  }
+
+  function openGift() {
+    showScreen("roulette");
+  }
+
+  document.getElementById("openGift").addEventListener("click", openGift);
+  document.getElementById("openGiftButton").addEventListener("click", openGift);
+  spinButton.addEventListener("click", startSpin);
+
+  const videoOne = document.getElementById("videoOne");
+  const continueButton = document.getElementById("continueButton");
+
+  videoOne.addEventListener("ended", () => {
+    showScreen("roulette");
+    spinButton.disabled = false;
+    statusText.textContent = "Você tem uma última chance!";
+  });
+
+  continueButton.addEventListener("click", () => {
+    showScreen("roulette");
+    spinButton.disabled = false;
+    statusText.textContent = "Você tem uma última chance!";
+  });
+
+  function openMystery() {
+    if (navigator.vibrate) navigator.vibrate([120, 70, 120, 70, 240]);
+    showScreen("finalVideoScreen");
+    const finalVideo = document.getElementById("finalVideo");
+    playVideoFullscreen(finalVideo);
+  }
+
+  document.getElementById("mysteryBox").addEventListener("click", openMystery);
+  document.getElementById("openMysteryButton").addEventListener("click", openMystery);
+
+
+  function prepareVideos() {
+    [document.getElementById("videoOne"), document.getElementById("finalVideo")].forEach(video => {
+      if (!video) return;
+      video.load();
+    });
+  }
+
+  document.addEventListener("touchstart", prepareVideos, { once: true });
+  document.addEventListener("click", prepareVideos, { once: true });
+
+  drawWheel();
+</script>
+</body>
+</html>
